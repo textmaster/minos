@@ -1,8 +1,8 @@
 module Minos
   class K8s < Thor
-    desc "deploy", ""
+    desc "deploy", "Deploy docker artifacts specified in the manifest"
     def deploy
-      puts "deploy"
+      puts "not implemented"
     end
   end
 end

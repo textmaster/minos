@@ -1,12 +1,10 @@
 module Minos
   class Docker < Thor
-    class_option :manifest, default: "./docker-artifacts.yaml", desc: "Manifest config file to build docker artifacts"
-    class_option :branch, default: ENV['BRANCH_NAME'], desc: "Git branch name"
-    class_option :revision, default: ENV['REVISION'], desc: "Git revision hash"
-    class_option :only, type: :array, default: [], desc: "Builds only specified artifacts"
-    class_option :except, type: :array, default: [], desc: "Builds all but specified artifacts"
+    class_option :manifest, default: "./docker-artifacts.yaml", desc: "Manifest config file describing docker artifacts"
+    class_option :only, type: :array, default: [], desc: "Process only given artifacts"
+    class_option :except, type: :array, default: [], desc: "Process all but given artifacts"
 
-    desc "build", "Build docker artifacts"
+    desc "build", "Build docker artifacts specified in the manifest"
     def build
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
@@ -15,7 +13,7 @@ module Minos
       end
     end
 
-    desc "push", "Push docker artifacts"
+    desc "push", "Publish docker artifacts specified in the manifest"
     def push
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)

@@ -1,34 +1,68 @@
 # Minos
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/minos`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Minos is a gem created at TextMaster to ease our docker deployments on Kubernetes.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Run:
 
 ```ruby
-gem 'minos'
+gem install minos
 ```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install minos
 
 ## Usage
 
-TODO: Write usage instructions here
+Minos comes with a binary. You can see its usage with:
 
-## Development
+    $ minos help
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Minos is divided into two components:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+  1. Building and publishing docker artifacts
+  2. Deploying docker artifacts on a Kubernetes cluster
+
+### Build
+
+To build docker artifacts, Minos use a declarative config file written in YAML.
+By default Minos will look for a file called `docker-artifacts.yaml` under the
+current directory. See `--manifest` option to provide in different config file.
+For example:
+
+```yaml
+build:
+  artifacts:
+  - name: builder
+    image: textmasterapps/foo
+    tags:
+    - "$TARGET-latest"
+    docker:
+      # file: MyDockerfile
+      tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
+      target: builder
+      cacheFrom:
+      - textmasterapps/foo:builder
+      - textmasterapps/foo:builder-latest
+  - name: release
+    image: textmasterapps/foo
+    tags:
+    - "$REVISION" # you can reference ENV variables from your shell
+    - "latest"
+    docker:
+      # file: MyDockerfile
+      tag: "$IMAGE:$TARGET"
+      target: release
+      buildArg:
+        ENV: "production"
+        REVISION: "$REVISION"
+      cacheFrom:
+      - textmasterapps/foo:builder
+      - textmasterapps/foo:$REVISION
+      - textmasterapps/foo:latest
+```
+
+### Deploy
+
+WIP
 
 ## Contributing
 

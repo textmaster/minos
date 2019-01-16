@@ -46,10 +46,8 @@ module Minos
 
     def envs
       {
-        'IMAGE'       => image,
-        'TARGET'      => target,
-        'BRANCH_NAME' => options[:branch].to_s.strip,
-        'REVISION'    => options[:revision].to_s.strip,
+        'IMAGE'  => image,
+        'TARGET' => target,
       }
     end
 
