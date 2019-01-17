@@ -24,7 +24,7 @@ Minos is divided into two components:
 ### Build
 
 To build docker artifacts, Minos use a declarative config file written in YAML.
-By default Minos will look for a file called `docker-artifacts.yaml` under the
+By default Minos will look for a file called `minos.yaml` under the
 current directory. See `--manifest` option to provide in different config file.
 For example:
 
