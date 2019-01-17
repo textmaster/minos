@@ -64,13 +64,8 @@ With the following `Dockerfile`, leveraging [multi-stages](https://docs.docker.c
 
 ```
 ######################
-# Stage: ruby
-FROM ruby:2.5.3-alpine3.7 as ruby
-
-######################
 # Stage: builder
-FROM ruby as builder
-LABEL description="Install and cache gems for all environments"
+FROM ruby:2.5.3-alpine3.7 as builder
 
 ENV HOME /home/app
 WORKDIR $HOME
@@ -91,17 +86,13 @@ RUN apk add --update --no-cache --virtual .build-deps \
     libxslt-dev \
  && bundle config build.nokogiri --use-system-libraries \
  && bundle install --frozen --deployment --jobs 4 --retry 3 \
- # Remove unneeded files (*/.git, *.o, *.c) but keeps cached gems for later stages
- && find vendor/bundle/ -name ".git" -exec rm -rv {} + \
- && find vendor/bundle/ -name "*.c" -delete \
- && find vendor/bundle/ -name "*.o" -delete \
  # Remove unneeded build deps
  && apk del .build-deps
 
 ###############################
-# Stage runner
-FROM ruby as runner
-LABEL description="Builds an image ready to be run"
+# Stage release
+FROM ruby:2.5.3-alpine3.7 as release
+LABEL description="Builds a release image removing unneeded files and dependencies"
 
 # Install runtime deps and create a non-root user
 #
@@ -115,33 +106,15 @@ RUN apk add --update --no-cache \
     git \
     libxml2 \
     libxslt \
-    tzdata \
- && addgroup -g 1000 -S app \
- && adduser -u 1000 -S app -G app \
- && mkdir -p $HOME \
- && chown -R app:app $HOME
-
-USER app
+    tzdata
 
 # Copy bundle config from builder stage
-COPY --chown=app:app --from=builder /usr/local/bundle/config /usr/local/bundle/config
+COPY --from=builder /usr/local/bundle/config /usr/local/bundle/config
 # Copy bundled gems from builder stage
-COPY --chown=app:app --from=builder $HOME/vendor $HOME/vendor
+COPY --from=builder $HOME/vendor $HOME/vendor
 # Copy source files according to .dockerignore policy
 # Make sure your .dockerignore file is properly configure to ensure proper layer caching
-COPY --chown=app:app . $HOME
-
-ENV PORT 8080
-EXPOSE 8080
-
-ENTRYPOINT ["bundle", "exec"]
-
-CMD ["puma", "-C", "config/puma.rb"]
-
-###############################
-# Stage release
-FROM runner as release
-LABEL description="Builds a release image removing unneeded files and dependencies"
+COPY . $HOME
 
 # Removes development and test gems by re-running the bundle install command
 # using cached gems and simply removing unneeded gems using the clean option.
@@ -151,6 +124,13 @@ RUN bundle install --local --clean --without development test \
  # Remove unneeded files and folders
  && rm -rf spec tmp/cache node_modules app/assets vendor/assets lib/assets
 
+ENV PORT 8080
+EXPOSE 8080
+
+ENTRYPOINT ["bundle", "exec"]
+
+CMD ["puma", "-C", "config/puma.rb"]
+
 ARG ENV=production
 ARG REVISION
 
@@ -158,7 +138,7 @@ ENV RAILS_ENV $ENV
 ENV REVISION $REVISION
 ```
 
-More information about this Dockerfile structure can be found on our [Blog](https://medium.com/textmaster-engineering/how-textmaster-reduced-deployment-time-by-using-multi-stages-dockerfile-in-its-ci-pipeline-ffb5e153bfc7)
+More details about our Dockerfiles at TextMaster can be found on our [Blog](https://medium.com/textmaster-engineering/how-textmaster-reduced-deployment-time-by-using-multi-stages-dockerfile-in-its-ci-pipeline-ffb5e153bfc7)
 
 ### Deploy
 
