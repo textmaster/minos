@@ -1,6 +1,6 @@
 module Minos
   class CLI < Thor
-    class_option :manifest, default: "./docker-artifacts.yaml", desc: "Manifest config file describing docker artifacts"
+    class_option :manifest, default: "./minos.yaml", desc: "Manifest config file describing docker artifacts"
     class_option :only, type: :array, default: [], desc: "Process only given artifacts"
     class_option :except, type: :array, default: [], desc: "Process all but given artifacts"
 
