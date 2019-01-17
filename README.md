@@ -60,8 +60,6 @@ build:
       - textmasterapps/foo:latest
 ```
 
-*Note: `$REVISION` environment variable might be set with `export REVISION=`git rev-parse HEAD``*
-
 With the following `Dockerfile`, leveraging [multi-stages](https://docs.docker.com/develop/develop-images/multistage-build/):
 
 ```
