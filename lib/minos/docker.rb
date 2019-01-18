@@ -1,5 +1,7 @@
 module Minos
   class Docker < Thor
+    include Thor::Shell
+
     class_option :manifest, default: "./minos.yaml", desc: "Manifest config file describing docker artifacts"
     class_option :only, type: :array, default: [], desc: "Process only given artifacts"
     class_option :except, type: :array, default: [], desc: "Process all but given artifacts"
@@ -8,7 +10,9 @@ module Minos
     def build
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
+        say_status "minos", "Pulling \"#{artifact.name}\" artifact cached layers"
         artifact.pull
+        say_status "minos", "Building \"#{artifact.name}\" artifact"
         artifact.build
       end
     end
@@ -17,6 +21,7 @@ module Minos
     def push
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
+        say_status "minos", "Publishing \"#{artifact.name}\" artifact"
         artifact.push
       end
     end

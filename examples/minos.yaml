@@ -1,0 +1,32 @@
+build:
+  artifacts:
+  - name: builder
+    image: minos/busybox
+    tags:
+    - "$TARGET-$REVISION"
+    - "$TARGET-latest"
+    docker:
+      file: ./examples/Dockerfile
+      tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
+      target: builder
+      cacheFrom:
+      - minos/busybox:builder
+      - minos/busybox:builder-$REVISION
+      - minos/busybox:builder-latest
+  - name: release
+    image: minos/busybox
+    tags:
+    - "$REVISION" # you can reference ENV variables from your shell
+    - "latest"
+    docker:
+      file: ./examples/Dockerfile
+      tag: "$IMAGE:$TARGET"
+      target: release
+      buildArg:
+        ENV: "production"
+        REVISION: "$REVISION"
+      cacheFrom:
+      - minos/busybox:builder
+      - minos/busybox:release
+      - minos/busybox:$REVISION
+      - minos/busybox:latest

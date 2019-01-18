@@ -9,6 +9,10 @@ module Minos
       @options = options
     end
 
+    def name
+      artifact['name']
+    end
+
     def pull
       caches.each do |cache|
         docker_pull(cache)
