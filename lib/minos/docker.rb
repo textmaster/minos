@@ -20,6 +20,9 @@ module Minos
         .on(:artifact_built) do |name|
           say_status artifact.name, "Successfully built #{name}"
         end
+        .on(:artifact_build_failed) do |name|
+          say_status artifact.name, "Failed building #{name}", :red
+        end
 
         artifact.pull
         artifact.build
@@ -31,11 +34,17 @@ module Minos
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
         artifact
-        .on(:tagging_artifact) do |source, target|
+        .on(:artifact_tagged) do |source, target|
           say_status artifact.name, "Successfully tagged #{source} as #{target}"
         end
-        .on(:pushing_artifact) do |name|
-          say_status artifact.name, "Pushing #{name}"
+        .on(:artifact_tag_failed) do |source, target|
+          say_status artifact.name, "Failed tagging #{source} as #{target}", :red
+        end
+        .on(:artifact_pushed) do |name|
+          say_status artifact.name, "Successfully pushed #{name}"
+        end
+        .on(:artifact_push_failed) do |name|
+          say_status artifact.name, "Failed pushing #{name}", :red
         end
 
         artifact.push
