@@ -18,5 +18,10 @@ module Minos
     def deploy
       invoke 'minos:k8s:deploy', []
     end
+
+    desc "version", "Display Minos version"
+    def version
+      puts Minos::VERSION
+    end
   end
 end
