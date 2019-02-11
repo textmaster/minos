@@ -10,9 +10,18 @@ module Minos
     def build
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
-        say_status "minos", "Pulling \"#{artifact.name}\" artifact cached layers"
+        artifact
+        .on(:pulling_cache_artifact) do |name|
+          say_status artifact.name, "Pulling #{name}"
+        end
+        .on(:building_artifact) do |name|
+          say_status artifact.name, "Building #{name}"
+        end
+        .on(:artifact_built) do |name|
+          say_status artifact.name, "Successfully built #{name}"
+        end
+
         artifact.pull
-        say_status "minos", "Building \"#{artifact.name}\" artifact"
         artifact.build
       end
     end
@@ -21,7 +30,14 @@ module Minos
     def push
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
-        say_status "minos", "Publishing \"#{artifact.name}\" artifact"
+        artifact
+        .on(:tagging_artifact) do |source, target|
+          say_status artifact.name, "Successfully tagged #{source} as #{target}"
+        end
+        .on(:pushing_artifact) do |name|
+          say_status artifact.name, "Pushing #{name}"
+        end
+
         artifact.push
       end
     end
