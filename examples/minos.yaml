@@ -1,7 +1,7 @@
 build:
   artifacts:
   - name: builder
-    image: minos/busybox
+    image: textmasterapps/busybox
     tags:
     - "$TARGET-$REVISION"
     - "$TARGET-latest"
@@ -10,11 +10,11 @@ build:
       tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
       target: builder
       cacheFrom:
-      - minos/busybox:builder
-      - minos/busybox:builder-$REVISION
-      - minos/busybox:builder-latest
+      - textmasterapps/busybox:builder
+      - textmasterapps/busybox:builder-$REVISION
+      - textmasterapps/busybox:builder-latest
   - name: release
-    image: minos/busybox
+    image: textmasterapps/busybox
     tags:
     - "$REVISION" # you can reference ENV variables from your shell
     - "latest"
@@ -26,7 +26,7 @@ build:
         ENV: "production"
         REVISION: "$REVISION"
       cacheFrom:
-      - minos/busybox:builder
-      - minos/busybox:release
-      - minos/busybox:$REVISION
-      - minos/busybox:latest
+      - textmasterapps/busybox:builder
+      - textmasterapps/busybox:release
+      - textmasterapps/busybox:$REVISION
+      - textmasterapps/busybox:latest
