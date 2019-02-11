@@ -1,5 +1,4 @@
 require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/object/blank'
 
 module Minos
   class Artifact
@@ -39,38 +38,21 @@ module Minos
 
     def docker_build
       broadcast(:building_artifact, name)
-      status = run "docker build #{to_args(docker)} ."
-      if status.success?
-        broadcast(:artifact_built, name)
-      else
-        broadcast(:artifact_build_failed, name)
-      end
+      run "docker build #{to_args(docker)} ."
+      broadcast(:artifact_built, name)
     end
 
     def docker_push
       tags.each do |tag|
-        status = run "docker tag #{image}:#{target} #{image}:#{tag}"
-        if status.success?
-          broadcast(:artifact_tagged, "#{image}:#{target}", "#{image}:#{tag}")
-        else
-          broadcast(:artifact_tag_failed, "#{image}:#{target}", "#{image}:#{tag}")
-        end
-
-        status = run "docker push #{image}:#{tag}"
-        if status.success?
-          broadcast(:artifact_pushed, "#{image}:#{tag}")
-        else
-          broadcast(:artifact_push_failed, "#{image}:#{tag}")
-        end
+        broadcast(:tagging_artifact, "#{image}:#{target}", "#{image}:#{tag}")
+        run "docker tag #{image}:#{target} #{image}:#{tag}"
+        broadcast(:pushing_artifact, "#{image}:#{tag}")
+        run "docker push #{image}:#{tag}"
       end
     end
 
     def run(cmd)
-      stdout, stderr, status = Open3.capture3(envs, cmd)
-      puts stdout unless stdout.empty?
-      puts stderr unless stderr.empty?
-
-      return status
+      system("#{envs_as_cmd} && #{cmd}")
     end
 
     def envs
@@ -78,6 +60,10 @@ module Minos
         'IMAGE'  => image,
         'TARGET' => target,
       }
+    end
+
+    def envs_as_cmd
+      envs.map { |k, v| "#{k}=\"#{v}\"" }.join(' ')
     end
 
     def docker

@@ -1,7 +1,6 @@
 require 'yaml'
 require 'thor'
 require 'wisper'
-require 'open3'
 
 require 'minos/artifact'
 require 'minos/docker'
