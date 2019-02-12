@@ -2,7 +2,7 @@ require 'active_support/core_ext/string/inflections'
 
 module Minos
   class Artifact
-    include Wisper::Publisher
+    include Dry::Monads::Result::Mixin
 
     attr_reader :artifact, :options
 
@@ -16,8 +16,8 @@ module Minos
     end
 
     def pull
-      caches.each do |name|
-        docker_pull(name)
+      caches.map do |cache|
+        docker_pull(cache)
       end
     end
 
@@ -31,23 +31,29 @@ module Minos
 
     private
 
-    def docker_pull(name)
-      broadcast(:pulling_cache_artifact, name)
-      run "docker inspect #{name} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{name} 2> /dev/null"
+    def docker_pull(cache)
+      if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{cache} 2> /dev/null"
+        Success(cache)
+      else
+        Failure(cache)
+      end
     end
 
     def docker_build
-      broadcast(:building_artifact, name)
-      run "docker build #{to_args(docker)} ."
-      broadcast(:artifact_built, name)
+      if run "docker build #{to_args(docker)} ."
+        Success(name)
+      else
+        Failure(name)
+      end
     end
 
     def docker_push
-      tags.each do |tag|
-        broadcast(:tagging_artifact, "#{image}:#{target}", "#{image}:#{tag}")
-        run "docker tag #{image}:#{target} #{image}:#{tag}"
-        broadcast(:pushing_artifact, "#{image}:#{tag}")
-        run "docker push #{image}:#{tag}"
+      tags.map do |tag|
+        if run "docker tag #{image}:#{target} #{image}:#{tag} && docker push #{image}:#{tag}"
+          Success("#{image}:#{tag}")
+        else
+          Failure("#{image}:#{tag}")
+        end
       end
     end
 

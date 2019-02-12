@@ -1,6 +1,7 @@
 require 'yaml'
 require 'thor'
-require 'wisper'
+require "dry/monads/result"
+require "dry/matcher/result_matcher"
 
 require 'minos/artifact'
 require 'minos/docker'

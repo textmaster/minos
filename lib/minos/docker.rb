@@ -10,19 +10,30 @@ module Minos
     def build
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
-        artifact
-        .on(:pulling_cache_artifact) do |name|
-          say_status artifact.name, "Pulling #{name}"
-        end
-        .on(:building_artifact) do |name|
-          say_status artifact.name, "Building #{name}"
-        end
-        .on(:artifact_built) do |name|
-          say_status artifact.name, "Successfully built #{name}"
+
+        # Pull
+        artifact.pull.each do |result|
+          Dry::Matcher::ResultMatcher.(result) do |m|
+            m.success do |name|
+              say_status artifact.name, "Using #{name}"
+            end
+            m.failure do |name|
+              # noop
+              # failure here means we don't have docker image locally
+            end
+          end
         end
 
-        artifact.pull
-        artifact.build
+        # Build
+        Dry::Matcher::ResultMatcher.(artifact.build) do |m|
+          m.success do |name|
+            say_status artifact.name, "Successfully built #{name}"
+          end
+          m.failure do |name|
+            say_status artifact.name, "Failed building #{name}", :red
+            exit 1
+          end
+        end
       end
     end
 
@@ -30,15 +41,17 @@ module Minos
     def push
       artifacts.each do |a|
         artifact = Artifact.new(a, options: options)
-        artifact
-        .on(:tagging_artifact) do |source, target|
-          say_status artifact.name, "Successfully tagged #{source} as #{target}"
+        artifact.push.each do |result|
+          Dry::Matcher::ResultMatcher.(result) do |m|
+            m.success do |name|
+              say_status artifact.name, "Successfully pushed #{name}"
+            end
+            m.failure do |name|
+              say_status artifact.name, "Failed pushing #{name}", :red
+              exit 1
+            end
+          end
         end
-        .on(:pushing_artifact) do |name|
-          say_status artifact.name, "Pushing #{name}"
-        end
-
-        artifact.push
       end
     end
 
