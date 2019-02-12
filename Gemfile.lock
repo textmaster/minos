@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    minos (0.3.0)
+    minos (0.3.1)
       activesupport (~> 5.2)
       dry-matcher (~> 0.7)
       dry-monads (~> 1.2)
