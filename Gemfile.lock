@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    minos (0.2.2)
+    minos (0.3.0)
       activesupport (~> 5.2)
       dry-monads (~> 1.2)
       thor (~> 0.20)
