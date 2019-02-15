@@ -1,6 +1,6 @@
 ######################
 # Stage: builder
-FROM busybox as builder
+FROM nginx as builder
 
 ENV HOME /home/app
 WORKDIR $HOME
@@ -11,7 +11,7 @@ CMD ["ls", "-l"]
 
 ###############################
 # Stage release
-FROM busybox as release
+FROM nginx as release
 
 ENV HOME /home/app
 WORKDIR $HOME

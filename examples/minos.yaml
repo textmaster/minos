@@ -1,7 +1,7 @@
 build:
   artifacts:
   - name: builder
-    image: textmasterapps/busybox
+    image: textmasterapps/nginx
     tags:
     - "$TARGET-$REVISION"
     - "$TARGET-latest"
@@ -10,11 +10,11 @@ build:
       tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
       target: builder
       cacheFrom:
-      - textmasterapps/busybox:builder
-      - textmasterapps/busybox:builder-$REVISION
-      - textmasterapps/busybox:builder-latest
+      - textmasterapps/nginx:builder
+      - textmasterapps/nginx:builder-$REVISION
+      - textmasterapps/nginx:builder-latest
   - name: release
-    image: textmasterapps/busybox
+    image: textmasterapps/nginx
     tags:
     - "$REVISION" # you can reference ENV variables from your shell
     - "latest"
@@ -26,7 +26,7 @@ build:
         ENV: "production"
         REVISION: "$REVISION"
       cacheFrom:
-      - textmasterapps/busybox:builder
-      - textmasterapps/busybox:release
-      - textmasterapps/busybox:$REVISION
-      - textmasterapps/busybox:latest
+      - textmasterapps/nginx:builder
+      - textmasterapps/nginx:release
+      - textmasterapps/nginx:$REVISION
+      - textmasterapps/nginx:latest
