@@ -1,11 +1,11 @@
 require 'yaml'
 require 'thor'
-require "dry/monads/result"
-require "dry/matcher/result_matcher"
+require 'dry/monads/task'
+require 'dry/monads/result'
+require 'dry/monads/list'
+require 'dry/monads/do'
 
 require 'minos/artifact'
-require 'minos/docker'
-require 'minos/k8s'
 require 'minos/cli'
 require 'minos/version'
 

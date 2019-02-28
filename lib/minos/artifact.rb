@@ -1,8 +1,13 @@
+require 'open3'
+require 'minos/utils'
 require 'active_support/core_ext/string/inflections'
 
 module Minos
   class Artifact
-    include Dry::Monads::Result::Mixin
+    include Dry::Monads::Task::Mixin
+    include Dry::Monads::List::Mixin
+    include Dry::Monads::Do.for(:build, :push)
+    include Thor::Shell
 
     attr_reader :artifact, :options
 
@@ -15,61 +20,106 @@ module Minos
       artifact['name']
     end
 
-    def pull
-      caches.map do |cache|
-        docker_pull(cache)
-      end
-    end
-
     def build
-      docker_build
+      yield List::Task[
+        *caches.map.each_with_index { |cache, i| docker_pull(i, cache) }
+      ]
+      .traverse
+      .bind { |_| docker_build }
+      .to_result
     end
 
     def push
-      docker_push
+      yield List::Task[
+        *tags.map.each_with_index { |tag, i| docker_push(i, tag) }
+      ]
+      .traverse
+      .to_result
     end
 
     private
 
-    def docker_pull(cache)
-      if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{cache} 2> /dev/null"
-        Success(cache)
-      else
-        Failure(cache)
-      end
-    end
-
-    def docker_build
-      if run "docker build #{to_args(docker)} ."
-        Success(name)
-      else
-        Failure(name)
-      end
-    end
-
-    def docker_push
-      tags.map do |tag|
-        if run "docker tag #{image}:#{target} #{image}:#{tag} && docker push #{image}:#{tag}"
-          Success("#{image}:#{tag}")
+    def docker_pull(i, cache)
+      Task[:io] do
+        color = select_color(i)
+        print "Pulling #{cache}...", color: color
+        if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{cache} 2> /dev/null", color: color
+          print "Using #{cache}", color: color
         else
-          Failure("#{image}:#{tag}")
+          # noop
         end
       end
     end
 
-    def run(cmd)
-      system("#{envs_as_cmd} && #{cmd}")
+    def docker_build
+      Task[:io] do
+        color = :green
+        print "Building #{target}...", color: color
+        if run "docker build --rm #{Minos::Utils.to_args(docker)} .", color: color
+          print "Successfully built #{target}", color: color
+        else
+          print "Failed building #{target}", :red
+          raise StandardError.new($?)
+        end
+      end
     end
 
-    def envs
+    def docker_push(i, tag)
+      Task[:io] do
+        color = select_color(i)
+        print "Pushing #{image}:#{tag}...", color: color
+        if run "docker tag #{image}:#{target} #{image}:#{tag} && docker push #{image}:#{tag}", color: color
+          print "Successfully pushed #{image}:#{tag}", color: color
+        else
+          print "Failed pushing #{image}:#{tag}", :red
+          raise StandardError.new($?)
+        end
+      end
+    end
+
+    def run(cmd, color: colors.first)
+      Open3.popen3("#{Minos::Utils.to_envs(env)} ; #{cmd}") do |stdin, stdout, stderr, wait_thr|
+        t_out = Thread.new do
+          while line = stdout.gets do
+            print(line, color: color)
+          end
+        end
+
+        t_err = Thread.new do
+          while line = stderr.gets do
+            print(line, color: :red)
+          end
+        end
+
+        wait_thr.join
+        t_err.join
+        t_out.join
+
+        stdin.close
+        stdout.close
+        stderr.close
+
+        wait_thr.value.success?
+      end
+    end
+
+    def print(msg, color: colors.first)
+      say_status(name, msg, color)
+    end
+
+    def select_color(i)
+      colors[i % colors.count + 1]
+    end
+
+    def colors
+      %i(blue cyan yellow magenta)
+    end
+
+    def env
       {
         'IMAGE'  => image,
         'TARGET' => target,
       }
-    end
-
-    def envs_as_cmd
-      envs.map { |k, v| "#{k}=\"#{v}\"" }.join(' ')
     end
 
     def docker
@@ -90,23 +140,6 @@ module Minos
 
     def tags
       artifact['tags'].to_a
-    end
-
-    def to_args(args)
-      args.map do |key, value|
-        case value
-        when Array
-          value.map do |v|
-            "--#{key.underscore.gsub('_', '-')} #{v}"
-          end
-        when Hash
-          value.map do |k, v|
-            "--#{key.underscore.gsub('_', '-')} #{k}=#{v}"
-          end
-        else
-          "--#{key.underscore.gsub('_', '-')} #{value}"
-        end
-      end.flatten.join(' ')
     end
   end
 end
