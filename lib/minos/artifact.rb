@@ -40,7 +40,7 @@ module Minos
     private
 
     def docker_pull(i, cache)
-      Task[:io] do
+      Task[:io, &-> {
         color = select_color(i)
         print "Pulling #{cache}...", color: color
         if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{cache} 2> /dev/null", color: color
@@ -48,11 +48,11 @@ module Minos
         else
           # noop
         end
-      end
+      }]
     end
 
     def docker_build
-      Task[:io] do
+      Task[:io, &-> {
         color = :green
         print "Building #{target}...", color: color
         if run "docker build --rm #{Minos::Utils.to_args(docker)} .", color: color
@@ -61,11 +61,11 @@ module Minos
           print "Failed building #{target}", :red
           raise StandardError.new($?)
         end
-      end
+      }]
     end
 
     def docker_push(i, tag)
-      Task[:io] do
+      Task[:io, &-> {
         color = select_color(i)
         print "Pushing #{image}:#{tag}...", color: color
         if run "docker tag #{image}:#{target} #{image}:#{tag} && docker push #{image}:#{tag}", color: color
@@ -74,7 +74,7 @@ module Minos
           print "Failed pushing #{image}:#{tag}", :red
           raise StandardError.new($?)
         end
-      end
+      }]
     end
 
     def run(cmd, color: colors.first)
