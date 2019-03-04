@@ -4,6 +4,7 @@ require 'active_support/core_ext/string/inflections'
 
 module Minos
   class Artifact
+    include Dry::Monads::Result::Mixin
     include Dry::Monads::Task::Mixin
     include Dry::Monads::List::Mixin
     include Dry::Monads::Do.for(:build, :push)
@@ -45,9 +46,9 @@ module Minos
         print "Pulling #{cache}...", color: color
         if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{cache} 2> /dev/null", color: color
           print "Using #{cache}", color: color
-        else
-          # noop
         end
+
+        return Success()
       }]
     end
 
@@ -57,9 +58,10 @@ module Minos
         print "Building #{target}...", color: color
         if run "docker build --rm #{Minos::Utils.to_args(docker)} .", color: color
           print "Successfully built #{target}", color: color
+          return Success()
         else
-          print "Failed building #{target}", :red
-          raise StandardError.new($?)
+          print "Failed building #{target}", color: :red
+          return Failure($?)
         end
       }]
     end
@@ -70,9 +72,10 @@ module Minos
         print "Pushing #{image}:#{tag}...", color: color
         if run "docker tag #{image}:#{target} #{image}:#{tag} && docker push #{image}:#{tag}", color: color
           print "Successfully pushed #{image}:#{tag}", color: color
+          return Success()
         else
-          print "Failed pushing #{image}:#{tag}", :red
-          raise StandardError.new($?)
+          print "Failed pushing #{image}:#{tag}", color: :red
+          return Failure($?)
         end
       }]
     end

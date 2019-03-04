@@ -1,0 +1,32 @@
+build:
+  artifacts:
+  - name: builder
+    image: textmasterapps/nginx
+    tags:
+    - "$TARGET-$REVISION"
+    - "$TARGET-latest"
+    docker:
+      file: ./examples/Dockerfile.invalid
+      tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
+      target: builder
+      cacheFrom:
+      - textmasterapps/nginx:builder
+      - textmasterapps/nginx:builder-$REVISION
+      - textmasterapps/nginx:builder-latest
+  - name: release
+    image: textmasterapps/nginx
+    tags:
+    - "$REVISION" # you can reference ENV variables from your shell
+    - "latest"
+    docker:
+      file: ./examples/Dockerfile.invalid
+      tag: "$IMAGE:$TARGET"
+      target: release
+      buildArg:
+        ENV: "production"
+        REVISION: "$REVISION"
+      cacheFrom:
+      - textmasterapps/nginx:builder
+      - textmasterapps/nginx:release
+      - textmasterapps/nginx:$REVISION
+      - textmasterapps/nginx:latest

@@ -7,7 +7,7 @@ module Minos
     option :only, type: :array, default: [], desc: "Process only given artifacts"
     option :except, type: :array, default: [], desc: "Process all but given artifacts"
     def build
-      artifacts.each do |a|
+      artifacts.map do |a|
         artifact = Artifact.new(a, options: options)
         artifact.build
       end
@@ -18,7 +18,7 @@ module Minos
     option :only, type: :array, default: [], desc: "Process only given artifacts"
     option :except, type: :array, default: [], desc: "Process all but given artifacts"
     def push
-      artifacts.each do |a|
+      artifacts.map do |a|
         artifact = Artifact.new(a, options: options)
         artifact.push
       end
