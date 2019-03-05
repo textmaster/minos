@@ -43,9 +43,15 @@ module Minos
     def docker_pull(i, cache)
       Task[:io, &-> {
         color = select_color(i)
-        print "Pulling #{cache}...", color: color
-        if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1 || docker pull #{cache} 2> /dev/null", color: color
-          print "Using #{cache}", color: color
+        if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1"
+          print "Using local #{cache}", color: color
+        else
+          print "Trying to pull #{cache}...", color: color
+          if run "docker pull #{cache} 2> /dev/null", color: color
+            print "Using local #{cache}", color: color
+          else
+            print "Enable to pull #{cache}", color: color
+          end
         end
 
         return Success()
@@ -111,7 +117,7 @@ module Minos
     end
 
     def select_color(i)
-      colors[i % colors.count + 1]
+      colors[i % colors.count]
     end
 
     def colors
