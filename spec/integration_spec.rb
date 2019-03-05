@@ -7,6 +7,8 @@ describe 'minos cli' do
     it do
       r = Minos::CLI.start(%w(build --manifest ./examples/minos.yaml))
       expect(r.all?(&:success?)).to be true
+      r = Minos::CLI.start(%w(push --manifest ./examples/minos.yaml))
+      expect(r.all?(&:success?)).to be true
     end
 
   end

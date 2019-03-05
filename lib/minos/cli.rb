@@ -12,7 +12,7 @@ module Minos
         artifact.build
       end
 
-      exit 1 if results.any?(&:failure?)
+      exit 1 if results.flatten.any?(&:failure?)
 
       results
     end
@@ -27,7 +27,7 @@ module Minos
         artifact.push
       end
 
-      exit 1 if results.any?(&:failure?)
+      exit 1 if results.flatten.any?(&:failure?)
 
       results
     end
