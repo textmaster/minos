@@ -7,10 +7,14 @@ module Minos
     option :only, type: :array, default: [], desc: "Process only given artifacts"
     option :except, type: :array, default: [], desc: "Process all but given artifacts"
     def build
-      artifacts.map do |a|
+      results = artifacts.map do |a|
         artifact = Artifact.new(a, options: options)
         artifact.build
       end
+
+      exit 1 if results.any?(&:failure?)
+
+      results
     end
 
     desc "push", "Publish docker artifacts specified in the manifest"
@@ -18,10 +22,14 @@ module Minos
     option :only, type: :array, default: [], desc: "Process only given artifacts"
     option :except, type: :array, default: [], desc: "Process all but given artifacts"
     def push
-      artifacts.map do |a|
+      results = artifacts.map do |a|
         artifact = Artifact.new(a, options: options)
         artifact.push
       end
+
+      exit 1 if results.any?(&:failure?)
+
+      results
     end
 
     desc "version", "Display Minos version"
