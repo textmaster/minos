@@ -34,14 +34,15 @@ build:
   - name: builder
     image: textmasterapps/foo
     tags:
-    - "$TARGET-latest"
+    - "$TARGET"
+    - "$TARGET-$REVISION"
     docker:
       # file: MyDockerfile
       tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
       target: builder
       cacheFrom:
       - textmasterapps/foo:builder
-      - textmasterapps/foo:builder-latest
+      - textmasterapps/foo:builder-$REVISION
   - name: release
     image: textmasterapps/foo
     tags:
@@ -56,6 +57,7 @@ build:
         REVISION: "$REVISION"
       cacheFrom:
       - textmasterapps/foo:builder
+      - textmasterapps/foo:release
       - textmasterapps/foo:$REVISION
       - textmasterapps/foo:latest
 ```

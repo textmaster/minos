@@ -1,7 +1,7 @@
 build:
   artifacts:
   - name: builder
-    image: textmasterapps/nginx
+    image: textmasterapps/minos
     tags:
     - "$TARGET-$REVISION"
     - "$TARGET-latest"
@@ -10,11 +10,11 @@ build:
       tag: "$IMAGE:$TARGET" # $IMAGE and $TARGET are automatically populated as env vars for you
       target: builder
       cacheFrom:
-      - textmasterapps/nginx:builder
-      - textmasterapps/nginx:builder-$REVISION
-      - textmasterapps/nginx:builder-latest
+      - textmasterapps/minos:builder
+      - textmasterapps/minos:builder-$REVISION
+      - textmasterapps/minos:builder-latest
   - name: release
-    image: textmasterapps/nginx
+    image: textmasterapps/minos
     tags:
     - "$REVISION" # you can reference ENV variables from your shell
     - "latest"
@@ -26,7 +26,7 @@ build:
         ENV: "production"
         REVISION: "$REVISION"
       cacheFrom:
-      - textmasterapps/nginx:builder
-      - textmasterapps/nginx:release
-      - textmasterapps/nginx:$REVISION
-      - textmasterapps/nginx:latest
+      - textmasterapps/minos:builder
+      - textmasterapps/minos:release
+      - textmasterapps/minos:$REVISION
+      - textmasterapps/minos:latest
