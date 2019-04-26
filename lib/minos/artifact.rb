@@ -50,7 +50,7 @@ module Minos
           if run "docker pull #{cache} 2> /dev/null", color: color
             print "Using local #{cache}", color: color
           else
-            print "Enable to pull #{cache}", color: color
+            print "Unable to pull #{cache}", color: color
           end
         end
 
