@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
-  ./minos-linux $*
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  ./minos-osx $*
-else
-  echo "Unknown Platform $OSTYPE";
-fi

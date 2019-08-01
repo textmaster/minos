@@ -21,6 +21,26 @@ Minos is divided into two components:
   1. Building and publishing docker artifacts
   2. Deploying docker artifacts on a Kubernetes cluster
 
+You can use minos from docker as well:
+
+1. Build the docker image
+
+```sh
+docker build -t textmasterapps/minos:latest .
+```
+
+2. Run:
+
+```sh
+docker run \
+  -e REVISION=$REVISION \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v `pwd`:/home/runner/ \
+  textmasterapps/minos:latest minos build --manifest examples/minos.yaml
+```
+
+*Mount your `.docker` directory if you want to connect to docker repository from within minos docker image*
+
 ### Build
 
 To build docker artifacts, Minos uses a declarative config file written in YAML.
@@ -141,26 +161,6 @@ ENV REVISION $REVISION
 ```
 
 More details about our Dockerfiles at TextMaster can be found on our [Blog](https://medium.com/textmaster-engineering/how-textmaster-reduced-deployment-time-by-using-multi-stages-dockerfile-in-its-ci-pipeline-ffb5e153bfc7)
-
-## Package
-
-A portable package can be created for minos in order to avoid having to install
-ruby to run the gem.
-
-Use [ruby-packer](https://github.com/pmq20/ruby-packer) to create a binary:
-
-1. Create a package:
-
-```sh
-./rubyc --gem=minos --gem-version=0.3.7 minos
-```
-
-2. Rename and move binary to `bin` folder:
-
-```sh
-mv a.out minos
-mv minos bin/
-```
 
 ## Contributing
 
