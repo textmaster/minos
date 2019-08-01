@@ -142,9 +142,25 @@ ENV REVISION $REVISION
 
 More details about our Dockerfiles at TextMaster can be found on our [Blog](https://medium.com/textmaster-engineering/how-textmaster-reduced-deployment-time-by-using-multi-stages-dockerfile-in-its-ci-pipeline-ffb5e153bfc7)
 
-### Deploy
+## Package
 
-WIP
+A portable package can be created for minos in order to avoid having to install
+ruby to run the gem.
+
+Use [ruby-packer](https://github.com/pmq20/ruby-packer) to create a binary:
+
+1. Create a package:
+
+```sh
+./rubyc --gem=minos --gem-version=0.3.7 minos
+```
+
+2. Rename and move binary to `bin` folder:
+
+```sh
+mv a.out minos
+mv minos bin/
+```
 
 ## Contributing
 
