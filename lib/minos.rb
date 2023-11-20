@@ -1,9 +1,8 @@
+# frozen_string_literal: true
+
 require 'yaml'
 require 'thor'
-require 'dry/monads/task'
-require 'dry/monads/result'
-require 'dry/monads/list'
-require 'dry/monads/do'
+require 'dry/monads'
 
 require 'minos/artifact'
 require 'minos/cli'

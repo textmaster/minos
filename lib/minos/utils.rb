@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Minos
   class Utils
     # Flatten args as an array, hash or string into CLI args.
