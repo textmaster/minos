@@ -1,4 +1,4 @@
-FROM ruby:2.5.3-alpine3.7
+FROM ruby:3.2.2-alpine3.18
 
 WORKDIR /home/runner
 
