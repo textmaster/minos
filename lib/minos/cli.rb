@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Minos
   class CLI < Thor
     include Thor::Shell

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'open3'
 require 'minos/utils'
 require 'active_support/core_ext/string/inflections'
@@ -7,6 +9,7 @@ module Minos
     include Dry::Monads::Result::Mixin
     include Dry::Monads::Task::Mixin
     include Dry::Monads::List::Mixin
+    include Dry::Monads::Try::Mixin
     include Dry::Monads::Do.for(:build, :push)
     include Thor::Shell
 
@@ -22,12 +25,7 @@ module Minos
     end
 
     def build
-      yield List::Task[
-        *caches.map.each_with_index { |cache, i| docker_pull(i, cache) }
-      ]
-      .traverse
-      .bind { |_| docker_build }
-      .to_result
+      docker_build.to_result
     end
 
     def push
@@ -40,29 +38,11 @@ module Minos
 
     private
 
-    def docker_pull(i, cache)
-      Task[:io, &-> {
-        color = select_color(i)
-        if run "docker inspect #{cache} -f '{{json .ID}}' > /dev/null 2>&1"
-          print "Using local #{cache}", color: color
-        else
-          print "Trying to pull #{cache}...", color: color
-          if run "docker pull #{cache} 2> /dev/null", color: color
-            print "Using local #{cache}", color: color
-          else
-            print "Unable to pull #{cache}", color: color
-          end
-        end
-
-        return Success()
-      }]
-    end
-
     def docker_build
       Task[:io, &-> {
         color = :green
         print "Building #{target}...", color: color
-        if run "docker build --rm #{Minos::Utils.to_args(docker)} .", color: color
+        if run "docker build --rm --build-arg BUILDKIT_INLINE_CACHE=1 #{Minos::Utils.to_args(docker)} .", color: color
           print "Successfully built #{target}", color: color
           return Success()
         else
